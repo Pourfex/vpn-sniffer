@@ -1,9 +1,5 @@
 FROM ubuntu:latest
 
-WORKDIR /usr/local
-
-COPY CMakeLists.txt src /usr/local/
-
 RUN apt-get update && apt-get install -y \
     libtins-dev \
     gcc \
@@ -12,8 +8,13 @@ RUN apt-get update && apt-get install -y \
     libpcap-dev \
     libssl-dev
 
+WORKDIR /usr/local/src
+
+COPY CMakeLists.txt .
+ADD src ./src/
+
 RUN cmake .
 
 RUN make
 
-ENTRYPOINT sniffer
+ENTRYPOINT ["/usr/local/src/sniffer"]
