@@ -1,32 +1,26 @@
 #include <iostream>
-#include <tins/tins.h>
+#include <vector>
+#include <chrono>
+#include <rxcpp/rx.hpp>
+#include "sniffer/sniffer.h"
 
-using namespace Tins;
-using namespace std;
 
-string getPackageSource(const IP::address_type& addressType, const TCP &tcp)
-{
-    return addressType.to_string()
-        .append(":")
-        .append(to_string(tcp.dport()));
-}
-
-bool callback(const PDU &pdu) {
-    auto &ip = pdu.rfind_pdu<IP>();
-    auto &tcp = pdu.rfind_pdu<TCP>();
-    auto src = getPackageSource(ip.src_addr(), tcp);
-    auto dest = getPackageSource(ip.dst_addr(), tcp);
-
-    if (src != "92.222.93.179:443" && dest != "92.222.93.179:443")
-    {
-        return true;
-    }
-
-    cout << src << " -> " << dest << endl;
-
-    return true;
+void sleepForever() {
+    std::promise<void>().get_future().wait();
 }
 
 int main() {
-    Sniffer("ens3").sniff_loop(callback);
+    CapiTrain::sniffer sniffer("ens3");
+    std::thread thread([&]() {
+        sniffer.start();
+    });
+
+    auto bufferTime = std::chrono::milliseconds(1000);
+    sniffer.getPackages().buffer_with_time(bufferTime).subscribe(
+            [](const std::vector<struct CapiTrain::package> &packages) {
+                std::cout << packages.size() << std::endl;
+            }
+    );
+
+    sleepForever();
 }
