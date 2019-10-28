@@ -7,6 +7,7 @@ namespace CapiTrain {
 
     struct package {
         std::string dest;
+        int port;
         unsigned long size;
     };
 

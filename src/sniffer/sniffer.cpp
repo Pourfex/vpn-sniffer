@@ -11,7 +11,10 @@ using Tins::PDU;
 using Tins::TCPIP::StreamFollower;
 
 sniffer::sniffer(const std::string &interfaceName) {
-    this->tinsSniffer = std::make_unique<Tins::Sniffer>(interfaceName);
+    SnifferConfiguration config;
+    config.set_promisc_mode(true);
+    config.set_filter("tcp");
+    this->tinsSniffer = std::make_unique<Tins::Sniffer>(interfaceName, config);
 }
 
 void sniffer::start() {
@@ -30,6 +33,10 @@ rxcpp::observable<package> sniffer::get_packages() const {
 }
 
 void sniffer::on_new_stream(Stream &stream) {
+    if (stream.server_addr_v4().to_string() == "92.222.93.179") {
+        return;
+    }
+    std::cout << "New stream: " << stream.server_addr_v4() << std::endl;
     stream.server_data_callback([&](Stream &stream) { this->on_server_data(stream); });
 }
 
@@ -42,6 +49,7 @@ void sniffer::on_server_data(Stream &stream) {
     package package;
     package.size = size;
     package.dest = stream.server_addr_v4().to_string();
+    package.port = stream.server_port();
     auto subscriber = this->packages.get_subscriber();
     subscriber.on_next(package);
 }
