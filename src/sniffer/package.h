@@ -6,9 +6,8 @@
 namespace CapiTrain {
 
     struct package {
-        std::string src;
         std::string dest;
-        uint32_t size;
+        unsigned long size;
     };
 
 }
