@@ -18,7 +18,7 @@ int main() {
     auto bufferTime = std::chrono::milliseconds(1000);
     sniffer.getPackages().buffer_with_time(bufferTime).subscribe(
             [](const std::vector<struct CapiTrain::package> &packages) {
-                std::cout << packages.size() << std::endl;
+                //std::cout << packages.size() << std::endl;
             }
     );
 
