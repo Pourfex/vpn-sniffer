@@ -9,6 +9,53 @@ using Tins::Sniffer;
 using Tins::SnifferConfiguration;
 using Tins::PDU;
 using Tins::TCPIP::StreamFollower;
+using Tins::Utils::resolve_domain;
+
+std::string rdsnToHostName(std::string host)
+{
+    size_t result;
+    std::map<std::string, std::string> searches = {
+            {"facebook", "facebook"},
+            {"fbcdn", "facebook"},
+            {"1e100.net", "Google"},
+            {"kgb.emn", "maileleves.emn"}
+    };
+
+    for (auto const &x : searches)
+    {
+        if (x.first == "fbcdn")
+        {
+            result = host.find("instagram");
+            if (result != std::string::npos)
+            {
+                return "instagram";
+            }
+        }
+        result = host.find(x.first);
+        if (result != std::string::npos)
+        {
+            return x.second;
+        }
+    }
+
+    return host;
+}
+
+std::string exec(const char *cmd)
+{
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe)
+    {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    {
+        result += buffer.data();
+    }
+    return result;
+}
 
 sniffer::sniffer(const std::string &interfaceName) {
     SnifferConfiguration config;
@@ -36,7 +83,11 @@ void sniffer::on_new_stream(Stream &stream) {
     if (stream.server_addr_v4().to_string() == "92.222.93.179") {
         return;
     }
-    std::cout << "New stream: " << stream.server_addr_v4() << std::endl;
+    std::string ipString = stream.server_addr_v4().to_string();
+    std::string domain = rdsnToHostName(exec(("host " + ipString).c_str()));
+
+    std::cout << "New stream: " << stream.server_addr_v4() << " * Coming from "<< domain << std::endl;
+
     stream.server_data_callback([&](Stream &stream) { this->on_server_data(stream); });
 }
 
@@ -53,5 +104,9 @@ void sniffer::on_server_data(Stream &stream) {
     auto subscriber = this->packages.get_subscriber();
     subscriber.on_next(package);
 }
+
+
+
+
 
 

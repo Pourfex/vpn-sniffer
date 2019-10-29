@@ -8,7 +8,7 @@ void sleepForever() {
 }
 
 int main() {
-    CapiTrain::sniffer sniffer("enp0s31f6");
+    CapiTrain::sniffer sniffer("wlp8s0");
     std::thread thread([&]() {
         sniffer.start();
     });
