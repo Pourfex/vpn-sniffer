@@ -16,6 +16,13 @@ RUN git clone https://github.com/ReactiveX/RxCpp rxcpp && \
     cmake ../ && \
     make install
 
+RUN git clone https://github.com/jarro2783/cxxopts && \
+    cd cxxopts && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make install
+
 WORKDIR /usr/local/src
 
 COPY CMakeLists.txt .
@@ -25,4 +32,8 @@ RUN cmake .
 
 RUN make
 
-ENTRYPOINT ["/usr/local/src/sniffer"]
+ENV INTERFACE_NAME $INTERFACE_NAME
+ENV CLIENT_IP $CLIENT_IP
+ENV SERVER_IP $SERVER_IP
+
+ENTRYPOINT "/usr/local/src/sniffer" --interface-name=$INTERFACE_NAME --client-ip=$CLIENT_IP --server-ip=$SERVER_IP

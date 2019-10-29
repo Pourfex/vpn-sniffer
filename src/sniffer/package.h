@@ -2,13 +2,20 @@
 #define SNIFFER_PACKAGE_H
 
 #include <string>
+#include <rxcpp/rx.hpp>
+
+using std::string;
+using rxcpp::observable;
 
 namespace CapiTrain {
 
     struct package {
-        std::string dest;
-        int port;
         unsigned long size;
+    };
+
+    struct stream_data {
+        string ip;
+        observable<package> packages$;
     };
 
 }

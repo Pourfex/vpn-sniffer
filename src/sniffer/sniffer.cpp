@@ -1,24 +1,35 @@
 #include "sniffer.h"
 #include "package.h"
 
-#include <sstream>
+#include <iostream>
+#include <chrono>
+#include <utility>
 
 using namespace CapiTrain;
+
+using std::cout;
+using std::endl;
+using std::string;
+using std::make_unique;
+using std::make_shared;
+using std::move;
+using std::chrono::seconds;
 
 using Tins::Sniffer;
 using Tins::SnifferConfiguration;
 using Tins::PDU;
 using Tins::TCPIP::StreamFollower;
 
-sniffer::sniffer(const std::string &interfaceName) {
+sniffer::sniffer(const string &interfaceName, string clientIP, string serverIP) : clientIP(move(clientIP)),
+                                                                                  serverIP(move(serverIP)) {
     SnifferConfiguration config;
     config.set_promisc_mode(true);
     config.set_filter("tcp");
-    this->tinsSniffer = std::make_unique<Tins::Sniffer>(interfaceName, config);
+    this->tinsSniffer = make_unique<Sniffer>(interfaceName, config);
 }
 
 void sniffer::start() {
-    Tins::TCPIP::StreamFollower streamFollower;
+    StreamFollower streamFollower;
     streamFollower.new_stream_callback([&](Stream &stream) {
         this->on_new_stream(stream);
     });
@@ -28,30 +39,53 @@ void sniffer::start() {
     });
 }
 
-rxcpp::observable<package> sniffer::get_packages() const {
-    return this->packages.get_observable();
+observable<stream_data> sniffer::get_streams() const {
+    return this->streams.get_observable();
 }
 
 void sniffer::on_new_stream(Stream &stream) {
-    if (stream.server_addr_v4().to_string() == "92.222.93.179") {
+    auto serverIp = stream.server_addr_v4().to_string();
+
+    if (serverIp == this->serverIP) {
         return;
     }
-    std::cout << "New stream: " << stream.server_addr_v4() << std::endl;
-    stream.server_data_callback([&](Stream &stream) { this->on_server_data(stream); });
+
+    auto packages = make_shared<subject<package>>();
+    auto packages$ = packages->get_observable();
+    stream_data streamData{
+            .ip = serverIp,
+            .packages$ = packages$
+    };
+    this->streams.get_subscriber().on_next(streamData);
+
+    auto debounceTime = seconds(120);
+
+    packages$
+            .skip(1)
+            .debounce(debounceTime)
+            .subscribe([&, packages](const package &p) {
+                cout << "Terminating" << endl;
+                packages->get_subscriber().on_completed();
+            });
+
+    stream.server_data_callback([&, packages](Stream &stream) {
+        this->on_server_data(stream, packages);
+    });
+
+    stream.stream_closed_callback([&, packages](Stream &stream) {
+        packages->get_subscriber().on_completed();
+    });
 }
 
-void sniffer::on_server_data(Stream &stream) {
-    // TODO set Monitor IP as an environment variable
-    if (stream.client_addr_v4().to_string() == "109.10.173.127") {
+void sniffer::on_server_data(Stream &stream, const shared_ptr<subject<package>> &packages) {
+    if (stream.client_addr_v4().to_string() == this->clientIP) {
         return;
     }
     auto size = stream.server_payload().size();
-    package package;
-    package.size = size;
-    package.dest = stream.server_addr_v4().to_string();
-    package.port = stream.server_port();
-    auto subscriber = this->packages.get_subscriber();
-    subscriber.on_next(package);
+    package package{
+            .size = size
+    };
+    packages->get_subscriber().on_next(package);
 }
 
 

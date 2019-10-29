@@ -12,21 +12,29 @@
 #include "package.h"
 
 using Tins::TCPIP::Stream;
+using rxcpp::observable;
+using rxcpp::subjects::subject;
+
+using std::shared_ptr;
+using std::unique_ptr;
+using std::string;
 
 namespace CapiTrain {
 
     class sniffer {
 
     public:
-        explicit sniffer(const std::string& interfaceName);
+        explicit sniffer(const string& interfaceName, string clientIP, string serverIP);
         void start();
-        [[nodiscard]] rxcpp::observable<package> get_packages() const;
+        [[nodiscard]] observable<stream_data> get_streams() const;
 
     private:
-        std::unique_ptr<Tins::Sniffer> tinsSniffer;
-        rxcpp::subjects::subject<package> packages;
-        void on_new_stream(Stream &stream);
-        void on_server_data(Stream &stream);
+        string clientIP;
+        string serverIP;
+        unique_ptr<Tins::Sniffer> tinsSniffer;
+        subject<stream_data> streams;
+        void on_new_stream(Stream& stream);
+        void on_server_data(Stream& stream, const shared_ptr<subject<package>>& packages);
     };
 
 }
