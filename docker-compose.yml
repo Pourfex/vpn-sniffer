@@ -1,0 +1,30 @@
+version: '3'
+services:
+  sniffer:
+    build: .
+    container_name: sniffer
+    env_file:
+      - sniffer.env
+    depends_on:
+      - openvpn-as
+  openvpn-as:
+    image: linuxserver/openvpn-as:latest
+    container_name: openvpn-as
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+#    volumes:
+#      - ./openvpn-data/conf:/etc/openvpn
+    ports:
+      - 943:943
+      - 9443:9443
+      - 1194:1194/udp
+      - 80:80
+    #network_mode: host
+    restart: unless-stopped
+    command:
+      - /usr/local/bin/init.sh
