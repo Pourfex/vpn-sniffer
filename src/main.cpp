@@ -1,15 +1,23 @@
 #include <rxcpp/rx.hpp>
-#include <thread>
 #include <cxxopts.hpp>
+
+#include <thread>
+#include <chrono>
+#include <vector>
+
 #include "sniffer/sniffer.h"
 
 using rxcpp::observable;
 using rxcpp::make_subscriber;
 
 using std::cout;
+using std::cerr;
 using std::endl;
+
 using std::thread;
 using std::string;
+using std::chrono::seconds;
+using std::vector;
 
 using cxxopts::Options;
 
@@ -23,14 +31,9 @@ void on_new_stream(const stream_data &stream_data) {
     auto packages$ = stream_data.packages$;
     cout << "New stream with ip: " << stream_data.ip << endl;
     packages$
-            .reduce(
-                    0,
-                    [](int totalSize, const package &p) {
-                        return totalSize + p.size;
-                    }
-            )
-            .subscribe([&, stream_data](int totalSize) {
-                cout << "Stream " << stream_data.ip << " finished with: " << totalSize << endl;
+            .buffer_with_time(seconds(10))
+            .subscribe([](const vector<package> &packages) {
+                cout << "Packages group:" << packages.size() << endl;
             });
 }
 
@@ -50,7 +53,16 @@ int main(int argc, char *argv[]) {
     auto interfaceName = parsedOptions["interface-name"].as<string>();
     auto clientIP = parsedOptions["client-ip"].as<string>();
     auto serverIP = parsedOptions["server-ip"].as<string>();
+
+    cout << "Starting sniffer on interface " << interfaceName << endl;
+
     CapiTrain::sniffer sniffer(interfaceName, clientIP, serverIP);
+    auto initialized = sniffer.initialize();
+    if (!initialized) {
+        cerr << "Error initializing" << endl;
+        return 0;
+    }
+
     thread thread([&]() {
         cout << "Starting sniffer on interface " << interfaceName << endl;
         sniffer.start();

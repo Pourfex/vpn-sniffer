@@ -17,14 +17,10 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-#    volumes:
-#      - ./openvpn-data/conf:/etc/openvpn
+    network_mode: host
     ports:
       - 943:943
       - 9443:9443
       - 1194:1194/udp
       - 80:80
-    #network_mode: host
     restart: unless-stopped
-    command:
-      - /usr/local/bin/init.sh

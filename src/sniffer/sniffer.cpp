@@ -19,14 +19,25 @@ using Tins::Sniffer;
 using Tins::SnifferConfiguration;
 using Tins::PDU;
 using Tins::TCPIP::StreamFollower;
+using Tins::pcap_error;
 
-sniffer::sniffer(const string &interfaceName, string clientIP, string serverIP) : clientIP(move(clientIP)),
-                                                                                  serverIP(move(serverIP)) {
+sniffer::sniffer(string interfaceName, string clientIP, string serverIP)
+        : clientIP(move(clientIP)),
+          serverIP(move(serverIP)),
+          interfaceName(move(interfaceName)) {
+}
+
+bool sniffer::initialize() {
     SnifferConfiguration config;
     config.set_promisc_mode(true);
     config.set_filter("tcp");
-    this->tinsSniffer = make_unique<Sniffer>(interfaceName, config);
-}
+    try {
+        this->tinsSniffer = make_unique<Sniffer>(interfaceName, config);
+        return true;
+    } catch (const pcap_error& exception) {
+        return false;
+    }
+};
 
 void sniffer::start() {
     StreamFollower streamFollower;

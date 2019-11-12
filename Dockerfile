@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     git
 
-RUN git clone https://github.com/ReactiveX/RxCpp rxcpp && \
+RUN git clone --recursive https://github.com/ReactiveX/RxCpp rxcpp && \
     cd rxcpp && \
     mkdir build && \
     cd build && \
