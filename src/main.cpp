@@ -31,6 +31,8 @@ void sleep_forever() {
     std::promise<void>().get_future().wait();
 }
 
+
+
 void on_new_stream(const stream_data &stream_data) {
     auto packages$ = stream_data.packages$;
     cout << "New stream with ip: " << stream_data.ip << endl;
