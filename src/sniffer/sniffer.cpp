@@ -158,28 +158,38 @@ bool handlePacket(PDU &some_pdu) {;
 
             type = that->pdu_type();
             std::cout << PDUTypeLookup(type)  << "," << some_pdu.size() << std::endl;
+            if(type == Tins::PDU::UDP){
+                std::cout << "UDP packet received" << std::endl;
+                const Tins::IP &ip = some_pdu.rfind_pdu<Tins::IP>(); // non-const works as well
+                std::cout << "Destination address: " << ip.dst_addr() << std::endl;
+                return true;
+            }else{
+                std::cout << "Another type packet received" << std::endl;
+            }
         }
     }
-    return true;
+    return false;
 }
 
 void sniffer::start() {
-   /* StreamFollower streamFollower;
+    StreamFollower streamFollower;
     streamFollower.new_stream_callback([&](Stream &stream) {
         this->on_new_stream(stream);
     });
     SnifferConfiguration config;
     config.set_promisc_mode(true);
-    config.set_filter("tcp");
+    //config.set_filter("udp"); //"tcp" or none if we want to display all !
     Sniffer sniffer(interfaceName, config);
     sniffer.sniff_loop([&](PDU &pdu) {
-        streamFollower.process_packet(pdu);
+        if(!handlePacket(pdu)){
+            //streamFollower.process_packet(pdu); c'est cassé :(
+        }
         return true;
-    });*/
+    });
 
-    Sniffer sniffer("wlp8s0");
+    /*Sniffer sniffer("wlp8s0");
 
-    sniffer.sniff_loop(handlePacket);
+    sniffer.sniff_loop(handlePacket);*/
 }
 
 
