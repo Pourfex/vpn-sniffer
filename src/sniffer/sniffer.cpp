@@ -10,7 +10,6 @@ using namespace CapiTrain;
 using std::cout;
 using std::endl;
 using std::string;
-using std::make_unique;
 using std::make_shared;
 using std::move;
 using std::chrono::seconds;
@@ -27,24 +26,16 @@ sniffer::sniffer(string interfaceName, string clientIP, string serverIP)
           interfaceName(move(interfaceName)) {
 }
 
-bool sniffer::initialize() {
-    SnifferConfiguration config;
-    config.set_promisc_mode(true);
-    config.set_filter("tcp");
-    try {
-        this->tinsSniffer = make_unique<Sniffer>(interfaceName, config);
-        return true;
-    } catch (const pcap_error& exception) {
-        return false;
-    }
-};
-
 void sniffer::start() {
     StreamFollower streamFollower;
     streamFollower.new_stream_callback([&](Stream &stream) {
         this->on_new_stream(stream);
     });
-    tinsSniffer->sniff_loop([&](PDU &pdu) {
+    SnifferConfiguration config;
+    config.set_promisc_mode(true);
+    config.set_filter("tcp");
+    Sniffer sniffer(interfaceName, config);
+    sniffer.sniff_loop([&](PDU &pdu) {
         streamFollower.process_packet(pdu);
         return true;
     });
@@ -55,6 +46,8 @@ observable<stream_data> sniffer::get_streams() const {
 }
 
 void sniffer::on_new_stream(Stream &stream) {
+    cout << "New stream" << endl;
+
     auto serverIp = stream.server_addr_v4().to_string();
 
     if (serverIp == this->serverIP) {

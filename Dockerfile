@@ -7,9 +7,10 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libpcap-dev \
     libssl-dev \
+    iproute2 \
     git
 
-RUN git clone --recursive https://github.com/ReactiveX/RxCpp rxcpp && \
+RUN git clone https://github.com/ReactiveX/RxCpp rxcpp && \
     cd rxcpp && \
     mkdir build && \
     cd build && \

@@ -5,12 +5,9 @@ services:
     container_name: sniffer
     env_file:
       - sniffer.env
-    depends_on:
-      - openvpn-as
   openvpn-as:
     image: linuxserver/openvpn-as:latest
     container_name: openvpn-as
-    privileged: true
     cap_add:
       - NET_ADMIN
     environment:
