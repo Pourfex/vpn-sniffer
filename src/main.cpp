@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     auto options = createOptions();
     auto parsedOptions = options.parse(argc, argv);
 
-    auto interfaceName = "dadza"; //parsedOptions["interface-name"].as<string>();
+    auto interfaceName = parsedOptions["interface-name"].as<string>();
     auto clientIP = parsedOptions["client-ip"].as<string>();
     auto serverIP = parsedOptions["server-ip"].as<string>();
 
