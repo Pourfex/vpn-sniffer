@@ -46,8 +46,6 @@ observable<stream_data> sniffer::get_streams() const {
 }
 
 void sniffer::on_new_stream(Stream &stream) {
-    cout << "New stream" << endl;
-
     auto serverIp = stream.server_addr_v4().to_string();
 
     if (serverIp == this->serverIP) {
@@ -68,7 +66,6 @@ void sniffer::on_new_stream(Stream &stream) {
             .skip(1)
             .debounce(debounceTime)
             .subscribe([&, packages](const package &p) {
-                cout << "Terminating" << endl;
                 packages->get_subscriber().on_completed();
             });
 

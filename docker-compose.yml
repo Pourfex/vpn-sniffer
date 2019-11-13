@@ -3,6 +3,7 @@ services:
   sniffer:
     build: .
     container_name: sniffer
+    network_mode: host
     env_file:
       - sniffer.env
   openvpn-as:

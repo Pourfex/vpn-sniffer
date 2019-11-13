@@ -32,7 +32,6 @@ void sleep_forever() {
 }
 
 void on_new_stream(const stream_data &stream_data) {
-    cout << "New stream" << endl;
     auto packages$ = stream_data.packages$;
     cout << "New stream with ip: " << stream_data.ip << endl;
     packages$
@@ -64,6 +63,8 @@ vector<string> getInterfaceNames() {
 }
 
 int main(int argc, char *argv[]) {
+    cout << "Package sniffer" << endl;
+
     auto options = createOptions();
     auto parsedOptions = options.parse(argc, argv);
 
