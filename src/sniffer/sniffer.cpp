@@ -141,7 +141,20 @@ std::string PDUTypeLookup(PDU::PDUType type){
     }
 }
 
-bool handlePacket(PDU &some_pdu) {;
+public void sniffer::on_UDP_data(PDU &some_pdu, const shared_ptr<subject<udp_package>> &udp_packages) {
+    auto ip = some_pdu.rfind_pdu<Tins::IP>();
+    if (ip.dst_addr().to_string() == this->clientIP) {
+        return;
+    }
+    auto size = some_pdu.size();
+    udp_package udp_package{
+            .ip = ip.dst_addr().to_string(),
+            .size = size
+    };
+    udp_packages->get_subscriber().on_next(udp_package);
+}
+
+bool handlePacket(PDU &some_pdu, const shared_ptr<subject<udp_package>> &udp_packages) {;
     const Tins::IP &ip = some_pdu.rfind_pdu<Tins::IP>(); // non-const works as well
     //std::cout << "Destination address: " << ip.dst_addr() << std::endl;
 
@@ -159,9 +172,10 @@ bool handlePacket(PDU &some_pdu) {;
             type = that->pdu_type();
             std::cout << PDUTypeLookup(type)  << "," << some_pdu.size() << std::endl;
             if(type == Tins::PDU::UDP){
-                std::cout << "UDP packet received" << std::endl;
+                //std::cout << "UDP packet received" << std::endl;
                 const Tins::IP &ip = some_pdu.rfind_pdu<Tins::IP>(); // non-const works as well
                 std::cout << "Destination address: " << ip.dst_addr() << std::endl;
+                sniffer::on_UDP_data(some_pdu, udp_packages);
                 return true;
             }else{
                 std::cout << "Another type packet received" << std::endl;
@@ -176,16 +190,23 @@ void sniffer::start() {
     streamFollower.new_stream_callback([&](Stream &stream) {
         this->on_new_stream(stream);
     });
+
+    auto udp_packages = make_shared<subject<package>>();
+    auto udp_packages$ = udp_packages->get_observable();
+
+
     SnifferConfiguration config;
     config.set_promisc_mode(true);
     //config.set_filter("udp"); //"tcp" or none if we want to display all !
     Sniffer sniffer(interfaceName, config);
     sniffer.sniff_loop([&](PDU &pdu) {
-        if(!handlePacket(pdu)){
+        if(!handlePacket(pdu, udp_packages$)){
             //streamFollower.process_packet(pdu); c'est cassé :(
         }
         return true;
     });
+
+
 
     /*Sniffer sniffer("wlp8s0");
 
@@ -196,6 +217,10 @@ void sniffer::start() {
 
 observable<stream_data> sniffer::get_streams() const {
     return this->streams.get_observable();
+}
+
+observable<stream_data> sniffer::get_udp_streams() const {
+    return this->udp_streams.get_observable();
 }
 
 void sniffer::on_new_stream(Stream &stream) {

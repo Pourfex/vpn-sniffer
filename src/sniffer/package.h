@@ -13,6 +13,11 @@ namespace CapiTrain {
         unsigned long size;
     };
 
+    struct udp_package {
+        unsigned long size;
+        string ip;
+    };
+
     struct stream_data {
         string ip;
         observable<package> packages$;
