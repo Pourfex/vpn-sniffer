@@ -95,8 +95,15 @@ int main(int argc, char *argv[]) {
     });
     cout << "Sniffer started!" << endl;
 
-    auto streams$ = sniffer.get_streams();
-    streams$.subscribe(&on_new_stream);
+   /* auto streams$ = sniffer.get_streams();
+    streams$.subscribe(&on_new_stream);*/
+
+   auto udp_stream$ = sniffer.get_udp_streams();
+   udp_stream$
+   .tap([](const udp_package& udp_package) {
+       cout << "Received package:" << udp_package.size << udp_package.ip << endl;
+   })
+   .subscribe();
 
     sleep_forever();
 }

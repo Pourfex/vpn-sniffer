@@ -26,7 +26,7 @@ namespace CapiTrain {
         explicit sniffer(string interfaceName, string clientIP, string serverIP);
         void start();
         [[nodiscard]] observable<stream_data> get_streams() const;
-        [[nodiscard]] observable<stream_data> get_udp_streams() const;
+        [[nodiscard]] observable<udp_package> get_udp_streams() const;
     private:
         string clientIP;
         string serverIP;
@@ -38,8 +38,9 @@ namespace CapiTrain {
 
         subject<udp_package> udp_streams;
         void on_server_data(Tins::PDU& some_pdu, const shared_ptr<subject<udp_package>>& udp_packages);
+        bool handlePacket(Tins::PDU &some_pdu);
 
-        void on_UDP_data(Tins::PDU &some_pdu, const shared_ptr<subject<udp_package>> &udp_packages);
+        void on_UDP_data(Tins::PDU &some_pdu);
     };
 
 }
