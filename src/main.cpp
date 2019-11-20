@@ -7,7 +7,8 @@
 #include <algorithm>
 #include <tins/tins.h>
 
-#include "sniffer/sniffer.h"
+#include "sniffer/vpn-sniffer.h"
+#include "udp_packets_saver.h"
 
 using rxcpp::observable;
 using rxcpp::make_subscriber;
@@ -31,17 +32,15 @@ void sleep_forever() {
     std::promise<void>().get_future().wait();
 }
 
-
-
 void on_new_stream(const stream_data &stream_data) {
     auto packages$ = stream_data.packages$;
     cout << "New stream with ip: " << stream_data.ip << endl;
     packages$
-            .tap([](const package& package) {
-                cout << "Received package!" << endl;
+            .tap([](const tcp_package &package) {
+                cout << "Received tcp_package!" << endl;
             })
             .buffer_with_time(seconds(10))
-            .subscribe([](const vector<package> &packages) {
+            .subscribe([](const vector<tcp_package> &packages) {
                 cout << "Packages group:" << packages.size() << endl;
             });
 }
@@ -76,7 +75,7 @@ int main(int argc, char *argv[]) {
 
     cout << "List of available interfaces:" << endl;
     auto interfaceNames = getInterfaceNames();
-    for (const auto& existingInterfaceName : interfaceNames) {
+    for (const auto &existingInterfaceName : interfaceNames) {
         cout << "* " << existingInterfaceName << endl;
     }
 
@@ -89,21 +88,13 @@ int main(int argc, char *argv[]) {
     cout << endl;
 
     cout << "Starting sniffer on interface " << interfaceName << "..." << endl;
-    CapiTrain::sniffer sniffer(interfaceName, clientIP, serverIP);
+    CapiTrain::VPNSniffer sniffer(interfaceName, clientIP, serverIP);
     thread thread([&]() {
         sniffer.start();
     });
     cout << "Sniffer started!" << endl;
 
-   /* auto streams$ = sniffer.get_streams();
-    streams$.subscribe(&on_new_stream);*/
-
-   auto udp_stream$ = sniffer.get_udp_streams();
-   udp_stream$
-   .tap([](const udp_package& udp_package) {
-       cout << "Received package:" << udp_package.size << udp_package.ip << endl;
-   })
-   .subscribe();
+    save_packets(sniffer);
 
     sleep_forever();
 }

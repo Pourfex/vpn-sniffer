@@ -10,7 +10,7 @@ find_package(rxcpp CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(Threads)
 
-add_executable(sniffer src/main.cpp src/sniffer/package.h src/sniffer/sniffer.cpp src/sniffer/sniffer.h)
+add_executable(sniffer src/main.cpp src/sniffer/package.h src/sniffer/vpn-sniffer.cpp src/sniffer/vpn-sniffer.h src/udp_packets_saver.h)
 
 target_link_libraries(sniffer "${TINS_LIBRARY}")
 target_link_libraries(sniffer ${CMAKE_THREAD_LIBS_INIT})

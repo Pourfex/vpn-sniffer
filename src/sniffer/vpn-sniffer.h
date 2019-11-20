@@ -1,5 +1,5 @@
-#ifndef SNIFFER_SNIFFER_H
-#define SNIFFER_SNIFFER_H
+#ifndef SNIFFER_VPN_SNIFFER_H
+#define SNIFFER_VPN_SNIFFER_H
 
 #include <tins/tins.h>
 #include <tins/tcp_ip/stream_follower.h>
@@ -20,13 +20,13 @@ using std::string;
 
 namespace CapiTrain {
 
-    class sniffer {
+    class VPNSniffer {
 
     public:
-        explicit sniffer(string interfaceName, string clientIP, string serverIP);
+        explicit VPNSniffer(string interfaceName, string clientIP, string serverIP);
         void start();
-        [[nodiscard]] observable<stream_data> get_streams() const;
-        [[nodiscard]] observable<udp_package> get_udp_streams() const;
+        [[nodiscard]] observable<stream_data> get_tcp_streams() const;
+        [[nodiscard]] observable<udp_package> get_udp_packets() const;
     private:
         string clientIP;
         string serverIP;
@@ -34,10 +34,9 @@ namespace CapiTrain {
 
         subject<stream_data> streams;
         void on_new_stream(Stream& stream);
-        void on_server_data(Stream& stream, const shared_ptr<subject<package>>& packages);
+        void on_server_data(Stream& stream, const shared_ptr<subject<tcp_package>>& packages);
 
         subject<udp_package> udp_streams;
-        void on_server_data(Tins::PDU& some_pdu, const shared_ptr<subject<udp_package>>& udp_packages);
         bool handlePacket(Tins::PDU &some_pdu);
 
         void on_UDP_data(Tins::PDU &some_pdu);
@@ -46,4 +45,4 @@ namespace CapiTrain {
 }
 
 
-#endif //SNIFFER_SNIFFER_H
+#endif //SNIFFER_VPN_SNIFFER_H

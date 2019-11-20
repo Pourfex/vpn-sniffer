@@ -9,7 +9,7 @@ using rxcpp::observable;
 
 namespace CapiTrain {
 
-    struct package {
+    struct tcp_package {
         unsigned long size;
     };
 
@@ -20,7 +20,7 @@ namespace CapiTrain {
 
     struct stream_data {
         string ip;
-        observable<package> packages$;
+        observable<tcp_package> packages$;
     };
 
 }
