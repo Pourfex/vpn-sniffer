@@ -1,10 +1,6 @@
 #include <rxcpp/rx.hpp>
 #include <cxxopts.hpp>
-
 #include <thread>
-#include <chrono>
-#include <vector>
-#include <algorithm>
 #include <tins/tins.h>
 
 #include "sniffer/vpn-sniffer.h"
@@ -32,24 +28,12 @@ void sleep_forever() {
     std::promise<void>().get_future().wait();
 }
 
-void on_new_stream(const stream_data &stream_data) {
-    auto packages$ = stream_data.packages$;
-    cout << "New stream with ip: " << stream_data.ip << endl;
-    packages$
-            .tap([](const tcp_package &package) {
-                cout << "Received tcp_package!" << endl;
-            })
-            .buffer_with_time(seconds(10))
-            .subscribe([](const vector<tcp_package> &packages) {
-                cout << "Packages group:" << packages.size() << endl;
-            });
-}
-
 Options createOptions() {
     Options options("CapiTrain VPN Sniffer");
     options.add_options()
             ("interface-name", "Name of the interface", cxxopts::value<string>()->default_value("en0"))
-            ("client-ip", "IP of the client (your IP)", cxxopts::value<string>()->default_value(""))
+            ("client-ip", "IP of the client (phone)", cxxopts::value<string>()->default_value(""))
+            ("monitor-ip", "IP of the monitor (your IP)", cxxopts::value<string>()->default_value(""))
             ("server-ip", "IP of the server (the VPN server's IP)", cxxopts::value<string>()->default_value(""));
     return options;
 }
@@ -72,6 +56,7 @@ int main(int argc, char *argv[]) {
     auto interfaceName = parsedOptions["interface-name"].as<string>();
     auto clientIP = parsedOptions["client-ip"].as<string>();
     auto serverIP = parsedOptions["server-ip"].as<string>();
+    auto monitorIP = parsedOptions["monitor-ip"].as<string>();
 
     cout << "List of available interfaces:" << endl;
     auto interfaceNames = getInterfaceNames();
@@ -88,7 +73,7 @@ int main(int argc, char *argv[]) {
     cout << endl;
 
     cout << "Starting sniffer on interface " << interfaceName << "..." << endl;
-    CapiTrain::VPNSniffer sniffer(interfaceName, clientIP, serverIP);
+    CapiTrain::VPNSniffer sniffer(interfaceName, clientIP, serverIP, monitorIP);
     thread thread([&]() {
         sniffer.start();
     });

@@ -23,26 +23,21 @@ namespace CapiTrain {
     class VPNSniffer {
 
     public:
-        explicit VPNSniffer(string interfaceName, string clientIP, string serverIP);
+        explicit VPNSniffer(string interfaceName, string clientIP, string serverIP, string monitorIP);
         void start();
-        [[nodiscard]] observable<stream_data> get_tcp_streams() const;
-        [[nodiscard]] observable<udp_package> get_udp_packets() const;
+        [[nodiscard]] observable<package> get_packets() const;
     private:
         string clientIP;
         string serverIP;
+        string monitorIP;
         string interfaceName;
 
-        subject<stream_data> streams;
-        void on_new_stream(Stream& stream);
-        void on_server_data(Stream& stream, const shared_ptr<subject<tcp_package>>& packages);
+        subject<package> packets_subject;
+        bool handle_pdu(Tins::PDU &pdu);
 
-        subject<udp_package> udp_streams;
-        bool handlePacket(Tins::PDU &some_pdu);
-
-        void on_UDP_data(Tins::PDU &some_pdu);
+        void on_packet(Tins::PDU &pdu, bool isUdp);
     };
 
 }
-
 
 #endif //SNIFFER_VPN_SNIFFER_H

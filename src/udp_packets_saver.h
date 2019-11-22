@@ -14,6 +14,9 @@ using std::cout;
 using std::endl;
 
 using std::chrono::seconds;
+using std::chrono::milliseconds;
+using std::chrono::duration_cast;
+using std::chrono::system_clock;
 
 using std::vector;
 
@@ -27,30 +30,41 @@ using std::ostream_iterator;
 using std::fstream;
 
 using CapiTrain::VPNSniffer;
-using CapiTrain::udp_package;
+using CapiTrain::package;
+
+const auto BUFFER_TIME = seconds(10);
+
+string get_timestamp() {
+    auto ms = duration_cast<milliseconds>(
+            system_clock::now().time_since_epoch()
+    );
+    return to_string(ms.count());
+}
 
 void save_packets(const VPNSniffer &sniffer) {
-    fstream udpPacketsFile;
-    udpPacketsFile.open("udp_packets.txt");
-
-    auto udpPackets$ = sniffer.get_udp_packets();
+    auto udpPackets$ = sniffer.get_packets();
     udpPackets$
-            .map([](const udp_package &packet) {
-                return packet.ip + "," + to_string(packet.size);
+            .map([](const package &packet) {
+                string type = packet.tcp ? "tcp" : "udp";
+                return type + "," + packet.ip + "," + to_string(packet.size) + "," + get_timestamp();
             })
-            .buffer_with_time(seconds(10))
+            .buffer_with_time(BUFFER_TIME)
             .filter([](const vector<string> &packets) {
                 return !packets.empty();
+            })
+            .tap([](const vector<string> &packets) {
+                cout << "Writing " << packets.size() << " packets " << endl;
             })
             .map([](const vector<string> &packets) {
                 ostringstream stringStream;
                 ostream_iterator<string> iterator(stringStream, "\n");
                 copy(packets.begin(), packets.end() - 1, iterator);
-                stringStream << packets.back();
+                stringStream << packets.back() << "\n";
                 return stringStream.str();
             })
-            .subscribe([&](const string& packets) {
-                cout << "Writing " << packets;
+            .subscribe([&](const string &packets) {
+                fstream udpPacketsFile;
+                udpPacketsFile.open("packets.txt", fstream::out | fstream::app);
                 udpPacketsFile << packets;
             });
 }

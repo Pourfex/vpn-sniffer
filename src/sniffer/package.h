@@ -9,18 +9,10 @@ using rxcpp::observable;
 
 namespace CapiTrain {
 
-    struct tcp_package {
-        unsigned long size;
-    };
-
-    struct udp_package {
+    struct package {
         unsigned long size;
         string ip;
-    };
-
-    struct stream_data {
-        string ip;
-        observable<tcp_package> packages$;
+        bool tcp;
     };
 
 }
