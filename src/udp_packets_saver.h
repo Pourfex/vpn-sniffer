@@ -31,6 +31,7 @@ using std::fstream;
 
 using CapiTrain::VPNSniffer;
 using CapiTrain::package;
+using CapiTrain::package_type;
 
 const auto BUFFER_TIME = seconds(10);
 
@@ -45,7 +46,12 @@ void save_packets(const VPNSniffer &sniffer) {
     auto udpPackets$ = sniffer.get_packets();
     udpPackets$
             .map([](const package &packet) {
-                string type = packet.tcp ? "tcp" : "udp";
+                string type = "unknown";
+                if (packet.type == package_type::UDP) {
+                    type = "udp";
+                } else if (packet.type == package_type::TCP) {
+                    type = "tcp";
+                }
                 return type + "," + packet.ip + "," + to_string(packet.size) + "," + get_timestamp();
             })
             .buffer_with_time(BUFFER_TIME)

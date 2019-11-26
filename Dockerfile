@@ -36,7 +36,8 @@ RUN make
 ENV INTERFACE_NAME $INTERFACE_NAME
 ENV CLIENT_IP $CLIENT_IP
 ENV SERVER_IP $SERVER_IP
+ENV MONITOR_IP $MONITOR_IP
 
 RUN ip -c a
 
-ENTRYPOINT "/usr/local/src/sniffer" --interface-name=$INTERFACE_NAME --client-ip=$CLIENT_IP --server-ip=$SERVER_IP
+ENTRYPOINT "/usr/local/src/sniffer" --interface-name=$INTERFACE_NAME --client-ip=$CLIENT_IP --server-ip=$SERVER_IP --monitor-ip=$MONITOR_IP

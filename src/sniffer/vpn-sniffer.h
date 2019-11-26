@@ -35,7 +35,7 @@ namespace CapiTrain {
         subject<package> packets_subject;
         bool handle_pdu(Tins::PDU &pdu);
 
-        void on_packet(Tins::PDU &pdu, bool isUdp);
+        void on_packet(Tins::PDU &pdu, package_type type);
     };
 
 }

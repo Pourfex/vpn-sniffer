@@ -1,21 +1,21 @@
 import fs from 'fs';
 import csv from 'csv-parser';
 import {createObjectCsvWriter} from 'csv-writer';
-import {AsyncSubject, from, Observable} from "rxjs";
+import {AsyncSubject, from, Observable, of} from "rxjs";
 import {
-    buffer, filter, finalize,
+    buffer, concatMap, filter, finalize,
     groupBy,
     map,
     mergeAll,
-    mergeMap, scan, skip,
-    skipWhile,
+    mergeMap, publish, reduce, scan, share, skip,
+    skipWhile, take,
     tap, toArray
 } from "rxjs/internal/operators";
 import _ from 'lodash';
 import * as dns from "dns";
 import memoizee from "memoizee";
 
-const DEBOUNCE_TIME_MILLISECONDS = 1000;
+const DEBOUNCE_TIME_MILLISECONDS = 500;
 
 const reverseLookup = (ip: string): Observable<string[]> => {
     const subject = new AsyncSubject<string[]>();
@@ -33,7 +33,7 @@ const reverseLookup = (ip: string): Observable<string[]> => {
 const memoizedReverseLookup = memoizee(reverseLookup);
 
 interface Packet {
-    type: 'udp' | 'tcp';
+    type: 'udp' | 'tcp' | 'unknown';
     size: number;
     timestamp: number;
     ip: string;
@@ -45,7 +45,7 @@ interface EnrichedPacket {
 }
 
 interface ProcessedPacket {
-    type: 'udp' | 'tcp';
+    type: 'udp' | 'tcp' | 'unknown';
     size: number;
     start: number;
     end: number;
@@ -68,15 +68,18 @@ const interpret = () => {
             );
 
     const debounceLines = (enrichedLines$: Observable<EnrichedPacket>) => {
-        const bufferToggle$ = enrichedLines$
-            .pipe(
-                skipWhile(line => line.current.timestamp < (line.previous.timestamp + DEBOUNCE_TIME_MILLISECONDS)),
-            );
         return enrichedLines$
             .pipe(
-                buffer(bufferToggle$),
-                filter(enrichedLines => enrichedLines.length !== 0),
-                map(enrichedLines => enrichedLines.map(enrichedLine => enrichedLine.previous))
+                reduce((acc, line) => {
+                    if (line.current.timestamp >= (line.previous.timestamp + DEBOUNCE_TIME_MILLISECONDS)) {
+                        acc.push([line.previous]);
+                    } else {
+                        acc[acc.length - 1].push(line.previous);
+                    }
+                    return acc
+                }, [[]] as any),
+                concatMap(from),
+                filter((x: any) => x.length > 0)
             );
     };
 

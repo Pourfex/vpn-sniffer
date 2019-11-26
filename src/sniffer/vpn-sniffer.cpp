@@ -26,17 +26,21 @@ VPNSniffer::VPNSniffer(string interfaceName, string clientIP, string serverIP, s
           interfaceName(move(interfaceName)) {
 }
 
-void VPNSniffer::on_packet(PDU &pdu, bool isUdp) {
+void VPNSniffer::on_packet(PDU &pdu, package_type type) {
     auto ipPdu = pdu.rfind_pdu<Tins::IP>();
 
     auto dst = ipPdu.dst_addr().to_string();
-    if (dst == this->serverIP || dst == this->clientIP || dst == this->monitorIP)
+    if (dst == this->clientIP || dst == this->monitorIP)
+        return;
+
+    auto src = ipPdu.src_addr().to_string();
+    if (src == this->serverIP || src == this->clientIP || src == this->monitorIP)
         return;
 
     auto size = pdu.size();
     package package;
-    package.tcp = !isUdp;
-    package.ip = dst;
+    package.type = type;
+    package.ip = src;
     package.size = size;
 
     packets_subject.get_subscriber().on_next(package);
@@ -44,23 +48,33 @@ void VPNSniffer::on_packet(PDU &pdu, bool isUdp) {
 
 bool VPNSniffer::handle_pdu(PDU &pdu) {
     auto innerPdu = pdu.inner_pdu();
-    if (innerPdu == nullptr) return false;
-
-    auto that = innerPdu->inner_pdu();
-    if (that == nullptr) return false;
-
-    auto type = that->pdu_type();
-    if (type == Tins::PDU::UDP || type == Tins::PDU::TCP) {
-        auto isUDP = type == Tins::PDU::UDP;
-        this->on_packet(pdu, isUDP);
-        return true;
+    if (innerPdu == nullptr) {
+        this->on_packet(pdu, package_type::UNKNOWN);
+        return false;
     }
 
-    return false;
+    auto innerInnerPdu = innerPdu->inner_pdu();
+    if (innerInnerPdu == nullptr) {
+        this->on_packet(pdu, package_type::UNKNOWN);
+        return false;
+    }
+
+    auto pduType = innerInnerPdu->pdu_type();
+    auto packageType = package_type::UNKNOWN;
+    if (pduType == Tins::PDU::UDP) {
+        packageType = package_type::UDP;
+    } else if (pduType == Tins::PDU::TCP) {
+        packageType = package_type::TCP;
+    }
+    this->on_packet(pdu, packageType);
+    return true;
 }
 
 void VPNSniffer::start() {
-    Sniffer sniffer(interfaceName);
+    SnifferConfiguration configuration;
+    configuration.set_promisc_mode(true);
+    configuration.set_immediate_mode(true);
+    Sniffer sniffer(interfaceName, configuration);
     sniffer.sniff_loop([&](PDU &pdu) {
         handle_pdu(pdu);
         return true;

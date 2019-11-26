@@ -9,10 +9,16 @@ using rxcpp::observable;
 
 namespace CapiTrain {
 
+    enum package_type {
+        TCP,
+        UDP,
+        UNKNOWN
+    };
+
     struct package {
         unsigned long size;
         string ip;
-        bool tcp;
+        package_type type;
     };
 
 }
