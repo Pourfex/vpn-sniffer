@@ -200,10 +200,9 @@ Le rapprochement de la deadline ne nous a pas permis de rencontrer notre tuteur 
 
 ## Bibliographie 
 
-[1] http ://stack.inria.fr 
-[2] https ://www.cisco.com/c/fr_fr/solutions/service-provider/visual-networkingindex-vni/index.html 
-[3] Bastien Confais, Adrien Lebre, Benoît Parrein. An Object Store Service for a Fog/Edge Computing Infrastructure based on IPFS and Scale-out NAS. 1st IEEE International Conference on Fog and Edge Computing - ICFEC’2017, May 2017, Madrid, Spain. pp.41-50 
-[4] Gheorghe, Alin-Gabriel, et al. "Decentralized Storage System for Edge Computing." 2019 18th International Symposium on Parallel and Distributed Computing (ISPDC). IEEE, 2019. 
-[5] Trevisan, Martino, et al. "Five years at the edge : watching internet from the ISP network." Proceedings of the 14th International Conference on emerging Networking EXperiments and Technologies. ACM, 2018
-[6] Dynamic linker tricks: Using LD_PRELOAD to cheat, inject features and investigate programs,https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs ,  April 2, 2013, Rafał Cieślak
-
++ [1] http ://stack.inria.fr 
++ [2] https ://www.cisco.com/c/fr_fr/solutions/service-provider/visual-networkingindex-vni/index.html 
++ [3] Bastien Confais, Adrien Lebre, Benoît Parrein. An Object Store Service for a Fog/Edge Computing Infrastructure based on IPFS and Scale-out NAS. 1st IEEE International Conference on Fog and Edge Computing - ICFEC’2017, May 2017, Madrid, Spain. pp.41-50 
++ [4] Gheorghe, Alin-Gabriel, et al. "Decentralized Storage System for Edge Computing." 2019 18th International Symposium on Parallel and Distributed Computing (ISPDC). IEEE, 2019. 
++ [5] Trevisan, Martino, et al. "Five years at the edge : watching internet from the ISP network." Proceedings of the 14th International Conference on emerging Networking EXperiments and Technologies. ACM, 2018
++ [6] Dynamic linker tricks: Using LD_PRELOAD to cheat, inject features and investigate programs,https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs ,  April 2, 2013, Rafał Cieślak
