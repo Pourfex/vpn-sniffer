@@ -1,0 +1,86 @@
+install.packages('ggplot2')
+install.packages('anytime')
+install.packages("dplyr")
+
+
+library(anytime)
+library(ggplot2)
+library(readr)
+library(dplyr)
+
+result <- read_csv("C:/Users/Alexis/Downloads/result.csv")
+
+
+summary(result)
+
+#Means and Sum of NUM_PACKETS
+mean_num_packets <- colMeans(result[,2], na.rm = TRUE) 
+mean_num_packets
+
+sum_num_packets <- colSums(result[,2], na.rm = TRUE) 
+sum_num_packets
+
+#Means and Sum of SIZE
+mean_size <- colMeans(result[,6], na.rm = TRUE) 
+mean_size
+
+sum_size <- colSums(result[,6], na.rm = TRUE) 
+sum_size
+
+sum_size_megabytes <- sum_size / 1000000
+sum_size_megabytes
+
+#Duration of test
+seconds <- (max(result$END) - min(result$START))/1000
+seconds
+
+#Protocols
+udp_percentage <- length(which(result$TYPE == "udp")) / length(result$TYPE)
+udp_percentage
+
+tcp_percentage <- length(which(result$TYPE == "tcp")) / length(result$TYPE)
+tcp_percentage
+
+unknown_percentage <- length(which(result$TYPE == "unknown")) / length(result$TYPE)
+unknown_percentage
+
+#Protocols size
+sum_tcp_size_megabytes <- colSums(filter(result, result$TYPE == "tcp")[,6], na.rm = TRUE) / 1000000
+sum_tcp_size_megabytes
+
+tcp_percentage_size <- sum_tcp_size_megabytes * 1000000 * 100 / sum_size
+tcp_percentage_size
+
+sum_udp_size_megabytes <- colSums(filter(result, result$TYPE == "udp")[,6], na.rm = TRUE) / 1000000
+sum_udp_size_megabytes
+
+udp_percentage_size <- sum_udp_size_megabytes * 1000000 * 100 / sum_size
+udp_percentage_size
+
+sum_unknown_size_megabytes <- colSums(filter(result, result$TYPE == "unknown")[,6], na.rm = TRUE) / 1000000
+sum_unknown_size_megabytes
+
+unknown_percentage_size <- sum_unknown_size_megabytes * 1000000 * 100 / sum_size
+unknown_percentage_size
+
+ggplot(result, aes(as.POSIXct(END/1000, origin="1970-01-01"), SIZE, color=TYPE)) + geom_point() + scale_colour_manual(values = c("red","blue", "green"), name="TYPE") + scale_x_datetime(labels = scales::time_format("%H:%M")) + labs(title="Packets Sniffing on all IPs by their protocol", y="Stream Size", x="Timestamp")
+dev.print(device = png, file = "export_ggplot.png", width = 1600)
+
+qplot(data = result, y = SIZE, x = as.POSIXct(END/1000, origin="1970-01-01"), color = factor(TYPE)) + facet_wrap(~ IPS) + scale_colour_manual(values = c("red","blue", "green"), name="TYPE")+ labs(title="Packets Sniffing on each IP by their protocol", y="Stream Size", x="Timestamp")
+dev.print(device = png, file = "export_qplot.png", width = 1600)
+
+
+### BONUS
+
+qplot(data = filter(result, result$IPS == result$IPS[1]), y = SIZE, x = as.POSIXct(END/1000, origin="1970-01-01"), color = factor(TYPE)) + facet_wrap(~ IPS) + scale_colour_manual(values = c("red","blue", "green"), name="TYPE")+ labs(title="Packets Sniffing on one IP by their protocols", y="Stream Size", x="Timestamp")
+dev.print(device = png, file = "export_qplot.png", width = 1600)
+
+size_by_ip <- aggregate(result$SIZE, by=list(IPS=result$IPS), FUN=sum)
+size_by_ip <- aggregate(result$SIZE, by=list(IPS=result$IPS), FUN=sum)[order(-size_by_ip$x),]
+size_by_ip
+
+
+objects_by_ip <- sort(table(result$IPS), decreasing = TRUE)
+objects_by_ip
+
+
