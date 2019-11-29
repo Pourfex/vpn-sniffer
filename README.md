@@ -1,4 +1,4 @@
-# Capitrain : Groupe 3 - Alexis Delforges, Ismaïl Ouazzani
+# Capitrain : Groupe 3 - Alexis Delforges, Ismaïl Ouazzany
 
 ## Présentation du projet
 
@@ -47,9 +47,8 @@ Apprenti ingénieur logiciel à l'IMT Atlantique et Orange (Labs à Rennes)
 -Applications de réalité virtuelle
 -Prochainement en projet de fin d'études sur la construction d'une stack réseau multiplateforme AR/VR
 
-### Ismaïl Ouazzani : 
-Apprenti ingénieur logiciel à l'IMT Atlantique et Smart (Nantes
-blabla
+### Ismaïl Ouazzany : 
+Apprenti ingénieur logiciel à l'IMT Atlantique et Smart (développeur full-stack)
 
 ### Groupe 1 :
 Killian Mer et Yanis Telaoumaten
@@ -197,6 +196,41 @@ Le rapprochement de la deadline ne nous a pas permis de rencontrer notre tuteur 
 + Snapchat
 
 + Facebook
+
+## Lancement du Sniffer
+
+Pour lancer le sniffer, vous avez seulement besoin d'avoir [Docker](https://docs.docker.com/install/) d'installé. Nous avons testé sous la version 19.03.04.
+
+Modifiez le fichier `sniffer.env` pour y mettre:
+* `SERVER_IP`: Adresse IP du serveur VPN
+* `CLIENT_IP`: Adresse IP du smartphone ou autre device avant connection au VPN
+* `MONITOR_IP`: Votre adresse IP
+
+Executez la commande `docker-compose up` pour démarrer automatiquement le sniffer et le VPN en même temps.
+
+### Récupération des résultats du Sniffer
+
+Les résultats du sniffer se trouvent sur le fichier `packages.txt` situés dans le répertoire `/usr/local/src` du contenaire Docker. En supposant que le nom de votre contenaire est `sniffer`, la commande est alors:
+```
+$ sudo docker cp sniffer:/usr/local/src/packages.txt .
+```
+
+### Serveur VPN
+
+Notre contenaire Docker utilise pour serveur VPN [OpenVPN Access Server](https://openvpn.net/vpn-server-resources/installing-openvpn-access-server-on-a-linux-system/)
+
+### Interprétation des résultats
+
+Pour interpréter les résultats de `package.txt`, vous avez besoin de [Node](https://nodejs.org/en/). Placez `package.txt` dans le dossier `interpreter/` et utiliser les commandes:
+```
+$ npm install
+$ npm run start
+```
+Ceci va générer un fichier `results.csv`
+
+### Analyse des résultats avec RStudio
+
+Lancez RStudio et copiez le script situé dans `analyzer`. Vous aurez besoin de changer dans le script le path vers le fichier `results.csv`
 
 ## Bibliographie 
 
